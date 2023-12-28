@@ -82,8 +82,6 @@ async def get_channel_logs(request: Request, database: db.Session = Depends(db.g
         options.insert(0, 'messages')
     tables = {"messages": "irc_log_messages", "modes": "irc_log_modes", "events": "irc_log_events", "nicks": "irc_log_nick_changes"}
 
-    # TODO: hostmasks, hostname, nicks, phrases, userhosts, spam filtered here
-
     if 'from_timestamp' in request.query_params.keys() and request.query_params['from_timestamp'].isnumeric():
         from_timestamp = datetime.fromtimestamp(float(request.query_params['from_timestamp']))
     else:
