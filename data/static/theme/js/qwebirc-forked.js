@@ -6,17 +6,17 @@ Forked for Atropa by alexander_as_helios
 
 */
 
-//// custom logger
-//let console_logger = console.log;
-//const logger = (...args) => {
-//	let output = sessionStorage.getItem('IRC_OUTPUT_CONSOLE');
-//	let result = '';
-//	if (output == '1') {
-//		result = console_logger(...args);
-//	}
-//		return result;
-//};
-//console.log = logger;
+// custom logger
+let console_logger = console.log;
+const logger = (...args) => {
+	let output = sessionStorage.getItem('IRC_OUTPUT_CONSOLE');
+	let result = '';
+	if (output == '1') {
+		result = console_logger(...args);
+	}
+		return result;
+};
+console.log = logger;
 
 // qwebirc stuff
 var QWEBIRC_BUILD="atropa";
@@ -512,10 +512,10 @@ qwebirc.irc.BaseIRCClient = new Class({
 				console.log("PRIVCTCP: ", nick, {"m": args, "x": type, "h": host, "n": nick, "-": this.nickname});
 			} else {
 				if (type == "ACTION") {
-					console.log("CHANACTION: ", target, user, {"m": args, "c": channel});
+					console.log("CHANACTION: ", target, user, {"m": args, "c": target});
 					return;
 				}
-				console.log("CHANCTCP: ", target, user, {"x": type, "m": args, "c": channel,});
+				console.log("CHANCTCP: ", target, user, {"x": type, "m": args, "c": target,});
 			}
 		} else {
 			if (target == this.nickname) {
