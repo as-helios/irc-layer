@@ -1,0 +1,17 @@
+gspread
+gspread_formatting
+web3
+web3-multi-provider
+fastapi
+python-dotenv
+apscheduler
+oauth2client
+mpmath
+httpx
+sqlalchemy
+redis
+psycopg2-binary
+asyncpg
+hexbytes
+eth_utils
+celery

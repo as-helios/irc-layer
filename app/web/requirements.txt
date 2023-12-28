@@ -1,0 +1,9 @@
+fastapi
+fastapi-limiter
+SQLAlchemy
+jinja2
+requests
+python-dotenv
+aiotools
+uvicorn
+psycopg2

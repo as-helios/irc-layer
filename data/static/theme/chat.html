@@ -1,0 +1,475 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta name="author" content="">
+    <title>Live IRC Chat #</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', path='theme/images/favicon.ico') }}"/>
+    <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=UnifrakturMaguntia" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Coustard" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='theme/css/style.css') }}?ts={{ ts }}">
+</head>
+
+<body class="{% if night_mode == '1' %}night-mode{% endif %}">
+    <div id="page">
+        <div class="row" style="text-align: center;">
+            <h1>#LOGS</h1>
+            <h2 class="quote">{{ quote }}</h2>
+        </div>
+        <div class="row" style="text-align: center;">
+            <div class="navbar">
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/chat">Live Chat</a></li>
+                    <li><a href="/channels">Channels</a></li>
+                    <li><a href="/whitepaper">Whitepaper</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <main class="chat-wrapper">
+                <section class="chat-bar">
+                    <div class="chat-status"><span class="chat-status-indicator"></span> <span class="chat-active-channel caret"></span></div>
+                    <div class="chat-button-wrap">
+                        <button id="toggle_full_screen_mode" class="chat-button" title="Toggle Fullscreen Mode">↗️</button>
+                    </div>
+                    <div class="chat-button-wrap">
+                        <button id="toggle_night_mode" class="chat-button" title="Toggle Night Mode">{% if night_mode == '1' %}🧿{% else %}👁️{% endif %}</button>
+                    </div>
+                    <div class="chat-button-wrap">
+                        <button id="toggle_settings_menu" class="chat-button" title="Chat Settings">⚙️</button>
+                        <div id="chat-filters" class="dropdown-content">
+                            <ul style="list-style-type:none; width:100%;">
+                                <li><input type="checkbox" id="show_join_part" checked><label for="show_join_part"> Show Join/Leave</label></li>
+                                <li><input type="checkbox" id="show_nick_changes" checked><label for="show_nick_changes"> Show Nick Changes</label></li>
+                                <li><input type="checkbox" id="show_topics" checked><label for="show_topics"> Show Topics</label></li>
+                                <li><input type="checkbox" id="show_modes" checked><label for="show_modes"> Show Modes</label></li>
+                                <li><input type="checkbox" id="show_messages" checked><label for="show_messages"> Show Messages</label></li>
+                                <li><input type="checkbox" id="spam_filter" checked><label for="spam_filter"> Spam Filter</label></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="chat-button-wrap">
+                        <button id="toggle_bobo_mode" class="chat-button" title="Toggle Bobo">🐻</button>
+                    </div>
+                    <div class="chat-button-wrap">
+                        <button id="toggle_highlight_mode" class="chat-button" title="Toggle Highlight">🖍️</button>
+                    </div>
+                    <div class="chat-button-wrap">
+                        <button id="toggle_channel_topic" class="chat-button hidden" title="Show Channel Topic">📣</button>
+                    </div>
+                    <div class="chat-button-wrap">
+                        <button id="toggle_multiselect" class="chat-button" title="Toggle Multiselect">📍</button>
+                    </div>
+                </section>
+                <section class="chat-topic"><div class="chat-topic-content"></div></section>
+                <section class="chat-area">
+                    <ol id="messages"></ol>
+                </section>
+                <section class="chat-footer">
+                    <form id="chat-input" autocomplete="off"><input type="text" id="chat-nick" value="" spellcheck="false" data-toggle="tooltip" title="Choose a nickname" placeholder="Nickname"> <input type="text" id="chat-input-message" class="disabled" value="" readonly><button>&#9166;</button></form>
+                </section>
+            </main>
+        </div>
+        <div class="row">
+            <div id="footer"></div>
+        </div>
+    </div>
+    <script type="module" src="{{ url_for('static', path='theme/js/centrifuge-forked.js') }}?ts={{ ts }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', path='theme/js/bg.js') }}?ts={{ ts }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', path='theme/js/night-mode.js') }}?ts={{ ts }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', path='theme/js/qwebirc-forked.js') }}?ts={{ ts }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', path='theme/js/chat.js') }}?ts={{ ts }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', path='theme/js/utils.js') }}?ts={{ ts }}"></script>
+    <script type="module">
+        import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
+        sessionStorage.setItem('IRC_OUTPUT_CONSOLE', 0);
+        const api_server = '{% if staging == "dev" %}0.0.0.0:3000{% else %}api.bigpp.icu{% endif %}';
+        const pubsub_server = '{% if staging == "dev" %}0.0.0.0:3007{% else %}cent.bigpp.icu{% endif %}';
+        const secure = api_server.indexOf('0.0.0.0') == -1 ? 's' : '';
+        const transports = [
+            {
+                transport: 'websocket',
+                endpoint: `ws${secure}://${pubsub_server}/connection/websocket`
+            },
+            {
+                transport: 'http_stream',
+                endpoint: `http${secure}://${pubsub_server}/connection/http_stream`
+            },
+            {
+                transport: 'sse',
+                endpoint: `http${secure}://${pubsub_server}/connection/sse`
+            }
+        ];
+
+        window['chat_loaded'] = false;
+        window['bottom_scroll'] = true;
+        document.addEventListener("click", clear_unread);
+        const active_channel = document.querySelector(".chat-status .chat-active-channel");
+        const container = document.getElementById('messages');
+        const spam_filter = document.getElementById('spam_filter');
+        container.addEventListener("mouseleave", handle_nick_unhover);
+        let last_scroll_top = container.scrollTop;
+        let jwt = process_jwt(await get_jwt(false));
+
+        async function get_jwt(token_only = true) {
+            let session_id = get_cookie('session_id');
+            let signed_message = sessionStorage.getItem('signed_message');
+            let wallet_address = await get_active_wallet();
+            let timestamp = parseInt(new Date().getTime()/1000).toString();
+            let data = {
+                "session_id": session_id ? session_id : generate_random_string(33),
+                "wallet_address": wallet_address ? wallet_address : false,
+                "signed_message": signed_message ? signed_message : false
+            };
+            let response = await fetch(`http${secure}://${api_server}/jwt?ts=${timestamp}`, {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            data = await response.json();
+            if (token_only) {
+                return data.token;
+            }
+            return data;
+        }
+
+        async function get_active_wallet() {
+            if (window.ethereum != undefined) {
+                let provider = new ethers.BrowserProvider(window.ethereum)
+                let accounts = await provider.listAccounts();
+                if (accounts.length > 0 && typeof window.ethereum != 'undefined') {
+                    accounts = await window.ethereum.request({
+                        method: "eth_requestAccounts",
+                    });
+                    if (!accounts) { return }
+                    return accounts[0];
+                }
+            }
+            return false;
+        }
+
+        async function connect_to_chat(channel, jwt, background = false) {
+            return new Promise((resolve, reject) => {
+                if (channel[0] == '#') {
+                    channel = channel.slice(1);
+                }
+                if (window[`CENTRIFUGO_${channel}`] != undefined) {
+                    return false;
+                }
+                // insert token
+                const centrifuge = new Centrifuge(transports, {
+                    token: jwt.token,
+                    getToken: get_jwt
+                });
+                // connection indicators
+                centrifuge.on('connecting', function (context) {
+                    let chat_status_indicator = document.querySelector(".chat-status .chat-status-indicator");
+                    console.log(`connecting: ${context.code}, ${context.reason}`);
+                    if (!background) {
+                        chat_status_indicator.innerHTML = "🟠";
+                        chat_status_indicator.title = "Connecting...";
+                    }
+                }).on('connected', function (context) {
+                    let chat_status_indicator = document.querySelector(".chat-status .chat-status-indicator");
+                    console.log(`connected over ${context.transport}`);
+                    if (!background) {
+                        chat_status_indicator.innerHTML = "🟢";
+                        chat_status_indicator.title = "Online";
+                        resolve();
+                    }
+                }).on('disconnected', function (context) {
+                    let chat_status_indicator = document.querySelector(".chat-status .chat-status-indicator");
+                    console.log(`disconnected: ${context.code}, ${context.reason}`);
+                    if (!background) {
+                        chat_status_indicator.innerHTML = "🔴";
+                        chat_status_indicator.title = "Offline";
+                        reject();
+                    }
+                }).connect();
+
+                // subscribe to read stream
+                window[`CENTRIFUGO_${channel}`] = centrifuge.newSubscription(`${jwt.namespace}:${channel}`);
+
+                // event hooks
+                window[`CENTRIFUGO_${channel}`].on('publication', function (context) {
+                    console.log(context);
+                    let line = get_context_data(JSON.parse(JSON.stringify(context)));
+
+                    if (line['event_type'] != undefined && line['event_type'] == 'TOPIC') {
+                        trigger_chat_topic(channel, line['content']);
+                    }
+
+                    // update active channel history
+                    console.log(line);
+                    if (window["IRC_CHANNEL"] == `#${channel}`) {
+                        try {
+                            process_line(line);
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    }
+                    // store the chat history with previously fetched
+                    if (!window[`#${channel}`] || window[`#${channel}`] == undefined) window[`#${channel}`] = [];
+                    if (Object.keys(line).indexOf('dispatch') == -1)
+                        window[`#${channel}`].push(line);
+                }).on('subscribing', function (context) {
+                    console.log(`subscribing: ${context.code}, ${context.reason}`);
+                }).on('subscribed', function (context) {
+                    console.log('subscribed', context);
+                }).on('unsubscribed', function (context) {
+                    console.log(`unsubscribed: ${context.code}, ${context.reason}`);
+                }).subscribe();
+
+            });
+        }
+
+        // channel state and log pull
+        async function get_chat_history(channel, timestamp = false, order = 'desc', background = false, topic = false) {
+            return new Promise((resolve, reject) => {
+                if (channel[0] == '#') {
+                    channel = channel.slice(1);
+                }
+                let url = `http${secure}://${api_server}/logs/${channel}?json=1&messages=1&events=1&modes=1&nicks=1`; // &antispam=1`;
+                if (timestamp) {
+                    url += `&to_timestamp=${timestamp}`;
+                }
+                if (topic) {
+                    url += `&topic=1`;
+                }
+                {% if namespace == '$secret:' %}
+                let data = {};
+                let session_id = get_cookie('session_id');
+                let signed_message = sessionStorage.getItem('signed_message');
+                if (typeof window.ethereum != 'undefined' && session_id != '' && signed_message != null) {
+                    data = {
+                        session_id: session_id,
+                        wallet_address: get_active_wallet(),
+                        signed_message: signed_message
+                    }
+                }
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then((result) => {
+                    if (result['topic'] != undefined) {
+                        trigger_chat_topic(channel, result['topic']);
+                        localStorage.setItem(`TOPIC_#${channel}`, result['topic']);
+                    } else {
+                        document.getElementById("toggle_channel_topic").classList.remove('hidden');
+                    }
+                    // store the chat history with previously fetched
+                    if (!window[`#${channel}`] || window[`#${channel}`] == undefined) window[`#${channel}`] = [];
+                    window[`#${channel}`] = [...result['history'], ...window[`#${channel}`]];
+
+                    if (background) return;
+
+                    if (order == 'asc') {
+                        result['history'] = result['history'].reverse();
+                    }
+                    // display the messages
+                    let last_line = false;
+                    for (var i = 0; i < result['history'].length; i++) {
+                        try {
+                            let line = process_line(result['history'][i], order);
+                            if (!last_line) last_line = line;
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    }
+                    // TODO: prepend the lines while websocket appends
+                    if (!result['filtered']) {
+                        let xray = document.createElement('div');
+                        xray.classList.add('chat-xray');
+                        xray.innerHTML = "<button id=\"perfect_gem_activated\" title=\"X-Ray Goggles\">🥽️</button>";
+                        document.querySelector(".chat-bar").appendChild(eye);
+                    }
+                    if (window[`#${channel}`].length > 0) {
+                        return last_line.nextElementSibling;
+                    } else if (order == 'desc') {
+                        return false;
+                    } else {
+                        return undefined;
+                    }
+                }){% else %}
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then((result) => {
+                    if (result['topic'] != undefined) {
+                        trigger_chat_topic(channel, result['topic']);
+                        localStorage.setItem(`TOPIC_#${channel}`, result['topic']);
+                    } else {
+                        document.getElementById("toggle_channel_topic").classList.remove('hidden');
+                    }
+                    // store the chat history with previously fetched
+                    if (!window[`#${channel}`] || window[`#${channel}`] == undefined) window[`#${channel}`] = [];
+                    window[`#${channel}`] = [...result['history'], ...window[`#${channel}`]];
+
+                    if (background) return;
+
+                    if (order == 'asc') {
+                        result['history'] = result['history'].reverse();
+                    }
+
+                    // display the messages
+                    let last_line = false;
+                    for (var i = 0; i < result['history'].length; i++) {
+                        try {
+                            let line = process_line(result['history'][i], order);
+                            if (!last_line) last_line = line;
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    }
+                    if (window[`#${channel}`].length > 0) {
+                        return last_line.nextElementSibling;
+                    } else if (order == 'desc') {
+                        return false;
+                    } else {
+                        return undefined;
+                    }
+                })
+                {% endif %}
+                .then((last_line) => {
+                    if (last_line == false) {
+                        scroll_to_bottom();
+                    } else if (last_line != undefined) {
+                        container.scrollTop = last_line.offsetTop - 3;
+                    }
+                    resolve();
+                })
+                .catch((error) => {
+                    console.log(error);
+                    reject(error);
+                });
+                activate_hover_effects();
+                window['chat_loaded'] = true;
+            });
+        }
+
+        active_channel.addEventListener("click", () => {
+            cycle_channels().then(scroll_to_bottom);
+        });
+
+        async function cycle_channels() {
+            let body = document.querySelector('body');
+            body.classList.add('loading');
+            let button = document.querySelector(".chat-active-channel");
+            button.classList.add('loading');
+            let data = sessionStorage.getItem("CENT_JWT_RESPONSE");
+            if (data == undefined) return;
+            data = JSON.parse(data);
+            //let channels = data['channels'];
+            let channels = {{ channels | safe }};
+            let current_channel = active_channel.innerText;
+            let next_channel = channels[channels.indexOf(current_channel) + 1];
+            if (next_channel == undefined) {
+                next_channel = channels[0];
+            }
+
+            next_channel = next_channel.slice(1);
+            if (window[`#${next_channel}`] == undefined) {
+                // TODO: check if already connected, skip to join
+                //connect_to_chat(next_channel, data).then(() => join_channel(current_channel, next_channel));
+                await get_chat_history(next_channel, false, 'desc', true, true);
+            } else {
+                trigger_chat_topic(next_channel, localStorage.getItem(`TOPIC_#${next_channel}`));
+            }
+            if (window['IRC_BANNED'] != null && window['IRC_BANNED'].indexOf(`#${next_channel}`) > -1) {
+		        toggle_chat_input_ui('banned');
+            }
+            if (window['IRC_CHANNELS_JOINED'].indexOf(`#${next_channel}`) > -1) {
+                toggle_chat_input_ui(true);
+            }
+            await join_channel(current_channel, next_channel);
+            let nick_box = document.getElementById('chat-nick');
+            if (window['IRC_CHANNEL_OPS'] != null && window['IRC_CHANNEL_OPS'].indexOf(`#${next_channel}`) > -1) {
+                nick_box.value = `@${nick_box.value}`;
+            } else if (window['IRC_CHANNEL_VOICES'] != null && window['IRC_CHANNEL_VOICES'].indexOf(`#${next_channel}`) > -1) {
+                nick_box.value = `+${nick_box.value}`;
+            } else if (['@', '+'].indexOf(nick_box.value[0]) > -1) {
+                nick_box.value = nick_box.value.slice(1);
+            }
+            active_channel.innerText = `#${next_channel}`;
+            window["IRC_CHANNEL"] = `#${next_channel}`;
+
+            // swap out chat history
+            if (window[`#${next_channel}`] == null) {
+                window[`#${next_channel}`] = [];
+            } // || window[`#${next_channel}`].length == 0) return;
+            let chat_history = Array.from(window[`#${next_channel}`]).reverse();
+            let lines = Array.from(document.querySelectorAll("#messages li")).reverse();
+            lines.forEach((item, index) => {
+                item.classList = [];
+                item.value = '';
+            });
+            replace_chat(chat_history, lines).then(() => {
+                let lines = document.querySelectorAll("#messages li");
+                let extra_lines = lines.length - chat_history.length;
+                if (extra_lines > 0)
+                    for (let i = 0; i < extra_lines; i++)
+                        lines[i].remove();
+            }).then(() => {
+                body.classList.remove('loading');
+                button.classList.remove('loading');
+            });
+            sessionStorage.setItem("IRC_LAST_ACTIVE_CHANNEL", `#${next_channel}`);
+            document.title = document.title.split('#')[0] + `#${next_channel}`;
+            scroll_to_bottom();
+        }
+        let channels = {{ channels | safe }};
+        window["IRC_CHANNEL"] = sessionStorage.getItem("IRC_LAST_ACTIVE_CHANNEL");
+        if (window["IRC_CHANNEL"] == undefined) {
+            window["IRC_CHANNEL"] = `${channels[0]}`;
+        }
+
+        active_channel.innerHTML = window["IRC_CHANNEL"];
+        // get_chat_history(window["IRC_CHANNEL"], false, 'desc', false, true).then(scroll_to_bottom);
+        // await connect_to_chat(window["IRC_CHANNEL"], jwt);
+        let chans = jwt.channels;
+        chans.splice(chans.indexOf(window["IRC_CHANNEL"]), 1);
+        chans.unshift(window["IRC_CHANNEL"]);
+        for (var i = 0; i < jwt.channels.length; i++) {
+            await get_chat_history(jwt.channels[i], false, 'desc', jwt.channels[i] == window["IRC_CHANNEL"] ? false : true, true).then(scroll_to_bottom);
+            await connect_to_chat(jwt.channels[i], jwt, jwt.channels[i] == window["IRC_CHANNEL"] ? false : true);
+        }
+        document.title = document.title.split('#')[0] + "#" + window["IRC_CHANNEL"].slice(1);
+
+        // scroll up to load more messages
+        function load_more_messages(event) {
+            if (event.target.tagName != 'ol' && event.target.id != 'messages') return
+            if (container.scrollHeight - container.scrollTop - container.clientHeight < 1) {
+                window['bottom_scroll'] = true;
+            } else {
+                window['bottom_scroll'] = false;
+            }
+            if (last_scroll_top > event.target.scrollTop && event.target.scrollTop <= 0) {
+                let channel = window["IRC_CHANNEL"];
+                if (window[`${channel}`][0] == undefined) return;
+                let datetime = window[`${channel}`][0]['created_at'].split('.')[0];
+                let timestamp = (Date.parse(datetime + "Z")) / 1000;
+                document.body.classList.add('loading');
+                get_chat_history(channel.slice(1), timestamp, 'asc').then(() => {
+                    document.body.classList.remove('loading');
+                });
+            }
+            last_scroll_top = event.target.scrollTop;
+        }
+        container.addEventListener("scroll", load_more_messages);
+        container.addEventListener("wheel", load_more_messages);
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+fastapi
+apscheduler
+asyncio
+uvicorn
+python-dotenv
+SQLAlchemy
+psycopg2

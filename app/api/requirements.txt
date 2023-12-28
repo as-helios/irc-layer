@@ -1,0 +1,14 @@
+fastapi
+fastapi-limiter
+asyncio==3.4.3
+aiotools
+aiohttp==3.8.5
+python-dotenv==1.0.0
+SQLAlchemy==2.0.22
+uvicorn
+requests
+psycopg2
+cent
+web3
+web3-multi-provider
+PyJWT

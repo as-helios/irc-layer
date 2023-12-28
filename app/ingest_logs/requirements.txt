@@ -1,0 +1,6 @@
+asyncio==3.4.3
+aiotools
+aiohttp==3.8.5
+python-dotenv==1.0.0
+SQLAlchemy==2.0.22
+psycopg2

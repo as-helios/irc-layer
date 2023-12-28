@@ -1,0 +1,57 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta name="author" content="">
+    <title>Chat Log: Search</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', path='theme/images/favicon.ico') }}"/>
+    <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=UnifrakturMaguntia" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Coustard" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='theme/css/style.css') }}?ts={{ ts }}">
+    <style>
+    </style>
+</head>
+
+<body class="{% if night_mode == '1' %}night-mode{% endif %}">
+    <div id="page">
+        <div class="row" style="text-align: center;">
+            <h1>#LOGS</h1>
+            <h2 class="quote">{{ quote }}</h2>
+        </div>
+        <div class="row" style="text-align: center;">
+            <div class="navbar">
+                <ul>
+                  <li><a href="/splash">Home</a></li>
+                  <li><a href="/chat">Live Chat</a></li>
+                  <li><a href="/channels">Channels</a></li>
+                  <li><a href="/search">Search</a></li>
+                  <li><a href="/quote">Quote</a></li>
+                  <li><a href="/whitepaper">Whitepaper</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="row" style="text-align: justify;">
+            <div id="content">
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque in viverra massa. Nulla sem erat, commodo quis lacus luctus, rhoncus dictum neque. Vestibulum ultricies rutrum odio id dapibus. Etiam at viverra libero. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nulla fringilla ligula ut luctus lacinia. Quisque sed arcu tellus. Aenean facilisis libero nec nibh scelerisque, at commodo magna tristique. Pellentesque lacinia pharetra nisl, eget ultrices ipsum pretium eu. Praesent molestie venenatis malesuada.</p>
+                <p>Vivamus congue pharetra justo. Sed tincidunt aliquet sapien, vel laoreet eros auctor quis. Vivamus suscipit porttitor mauris, nec congue ante ultricies eu. In rutrum risus leo. Proin elementum ut leo ac tempor. Ut neque purus, consectetur quis dui et, rutrum venenatis eros. Donec vestibulum lectus pretium, placerat nisi sed, condimentum leo. Cras in risus at metus tincidunt mollis. Aenean sed ultricies metus, eget cursus nulla. In hac habitasse platea dictumst. Phasellus ornare, ex at interdum varius, dolor nibh laoreet orci, nec condimentum massa turpis id massa. Vivamus interdum diam at sapien tempor tempus. Sed nunc justo, convallis non purus eget, fermentum iaculis metus. Integer rutrum convallis felis, id laoreet nulla gravida sed. Proin leo quam, condimentum sit amet tincidunt et, vestibulum at dolor. Phasellus nec orci commodo, luctus sem eget, placerat lectus.</p>
+                <p>Duis iaculis enim sed suscipit aliquam. Aliquam scelerisque leo porta erat pellentesque, id ullamcorper sem hendrerit. Sed viverra odio neque, eget elementum dolor semper sed. Fusce lorem odio, tempor eu condimentum non, mattis non urna. Sed consectetur metus at dapibus dapibus. Vivamus vel aliquam nisl. Aenean viverra egestas dolor, vitae elementum libero. Aliquam accumsan dignissim finibus. Donec ultricies arcu ut lacus luctus, eu laoreet quam rhoncus. Nam volutpat neque eu tortor iaculis, vehicula varius nisi fringilla. Nulla facilisi. Praesent tortor metus, lobortis a fermentum ac, lacinia nec erat. Pellentesque in diam molestie, pellentesque nunc sed, molestie elit. Etiam leo dui, egestas vitae sodales eu, hendrerit vitae est. Praesent suscipit condimentum augue, sit amet viverra lectus accumsan et. Praesent rhoncus sodales nibh ac tempor.</p>
+                <p>Sed at magna gravida, pulvinar tortor id, egestas enim. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque vel fermentum magna. Suspendisse in porttitor turpis. Nullam vitae porttitor dolor. Mauris ut gravida quam. Nam sit amet nibh sit amet quam dapibus ultricies id non lacus. Suspendisse ultrices, justo vitae lobortis vestibulum, dui mi finibus nibh, placerat consectetur ex diam et risus. Proin semper congue viverra. Integer scelerisque orci tortor, ut bibendum odio efficitur et. Phasellus vitae mi ut quam mollis volutpat sagittis vitae neque. Mauris sed maximus ante. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nullam laoreet egestas lorem, sit amet dignissim lacus congue sit amet. Etiam in cursus purus.</p>
+                <p>Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Sed feugiat molestie sem a euismod. Donec ac pellentesque sapien, in tincidunt nisl. Vestibulum luctus, magna et eleifend tempor, eros lorem feugiat ex, et finibus tellus nunc vel felis. Maecenas eget libero imperdiet, posuere urna sed, interdum mauris. Vivamus id leo euismod, faucibus nibh sed, mollis odio. In dignissim rutrum vestibulum. Nunc mi purus, varius ut fringilla sit amet, iaculis in purus.</p>
+            </div>
+        </div>
+        <div class="row">
+            <div id="footer"><div class="center"><button id="toggle_night_mode">{% if night_mode == '1' %}🧿{% else %}👁️{% endif %}</button></div></div>
+        </div>
+    </div>
+    <script type="text/javascript" src="{{ url_for('static', path='theme/js/bg.js') }}?ts={{ ts }}"></script>
+    <script type="module" src="{{ url_for('static', path='theme/js/night-mode.js') }}?ts={{ ts }}"></script>
+</body>
+</html>
+
+
+
+

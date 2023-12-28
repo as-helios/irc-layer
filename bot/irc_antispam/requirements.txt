@@ -1,0 +1,8 @@
+irc3==1.1.10
+asyncio==3.4.3
+aiohttp==3.8.5
+python-dotenv==1.0.0
+SQLAlchemy==2.0.22
+psycopg2
+apscheduler
+fastapi
