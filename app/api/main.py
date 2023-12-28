@@ -199,7 +199,8 @@ async def get_channel_logs(request: Request, database: db.Session = Depends(db.g
     lines = sorted(sorting_lines, key=sort_by_timestamp)
     # remove pruned message ids
     lines = [l for l in lines if l['id'] not in pruning]
-    # lines = sorting_lines
+    # reduce to last 30 lines
+    lines = lines[-30:]
 
     if 'json' in request.query_params and request.query_params['json'] == '1':
         response = {}

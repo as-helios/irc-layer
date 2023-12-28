@@ -364,6 +364,29 @@
             cycle_channels().then(scroll_to_bottom);
         });
 
+        // scroll up to load more messages
+        function load_more_messages(event) {
+            if (event.target.tagName != 'ol' && event.target.id != 'messages') return
+            if (container.scrollHeight - container.scrollTop - container.clientHeight < 1) {
+                window['bottom_scroll'] = true;
+            } else {
+                window['bottom_scroll'] = false;
+            }
+            if (last_scroll_top >= event.target.scrollTop && event.target.scrollTop <= 0) {
+                let channel = window["IRC_CHANNEL"];
+                if (window[`${channel}`][0] == undefined) return;
+                let datetime = window[`${channel}`][0]['created_at'].split('.')[0];
+                let timestamp = (Date.parse(datetime + "Z")) / 1000;
+                document.body.classList.add('loading');
+                get_chat_history(channel.slice(1), timestamp, 'asc').then(() => {
+                    document.body.classList.remove('loading');
+                });
+            }
+            last_scroll_top = event.target.scrollTop;
+        }
+        container.addEventListener("scroll", load_more_messages);
+        container.addEventListener("wheel", load_more_messages);
+
         async function cycle_channels() {
             let body = document.querySelector('body');
             body.classList.add('loading');
@@ -436,40 +459,11 @@
             window["IRC_CHANNEL"] = `${channels[0]}`;
         }
 
+        // load last channel
         active_channel.innerHTML = window["IRC_CHANNEL"];
-        // get_chat_history(window["IRC_CHANNEL"], false, 'desc', false, true).then(scroll_to_bottom);
-        // await connect_to_chat(window["IRC_CHANNEL"], jwt);
-        let chans = jwt.channels;
-        chans.splice(chans.indexOf(window["IRC_CHANNEL"]), 1);
-        chans.unshift(window["IRC_CHANNEL"]);
-        for (var i = 0; i < jwt.channels.length; i++) {
-            await get_chat_history(jwt.channels[i], false, 'desc', jwt.channels[i] == window["IRC_CHANNEL"] ? false : true, true).then(scroll_to_bottom);
-            await connect_to_chat(jwt.channels[i], jwt, jwt.channels[i] == window["IRC_CHANNEL"] ? false : true);
-        }
+        get_chat_history(window["IRC_CHANNEL"], false, 'desc', false, true).then(scroll_to_bottom);
+        await connect_to_chat(window["IRC_CHANNEL"], jwt);
         document.title = document.title.split('#')[0] + "#" + window["IRC_CHANNEL"].slice(1);
-
-        // scroll up to load more messages
-        function load_more_messages(event) {
-            if (event.target.tagName != 'ol' && event.target.id != 'messages') return
-            if (container.scrollHeight - container.scrollTop - container.clientHeight < 1) {
-                window['bottom_scroll'] = true;
-            } else {
-                window['bottom_scroll'] = false;
-            }
-            if (last_scroll_top > event.target.scrollTop && event.target.scrollTop <= 0) {
-                let channel = window["IRC_CHANNEL"];
-                if (window[`${channel}`][0] == undefined) return;
-                let datetime = window[`${channel}`][0]['created_at'].split('.')[0];
-                let timestamp = (Date.parse(datetime + "Z")) / 1000;
-                document.body.classList.add('loading');
-                get_chat_history(channel.slice(1), timestamp, 'asc').then(() => {
-                    document.body.classList.remove('loading');
-                });
-            }
-            last_scroll_top = event.target.scrollTop;
-        }
-        container.addEventListener("scroll", load_more_messages);
-        container.addEventListener("wheel", load_more_messages);
     </script>
 </body>
 </html>
