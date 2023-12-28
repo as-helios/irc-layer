@@ -366,11 +366,6 @@ async def session_verify(request: Request, database: db.Session = Depends(db.get
 
 @app.post("/jwt")
 async def jwt_token(request: Request, database: db.Session = Depends(db.get_db)):
-    # try:
-    #     request_body = await request.json()
-    # except Exception as e:
-    #     logging.error(e)
-    #     request_body = {}
     request_body = await request.json()
 
     session_length = await db.get_entries(database, "settings", [["key", "==", "session_length"]], 1)
@@ -565,11 +560,6 @@ async def delete_table_entry_id(request: Request, database: db.Session = Depends
 async def read_table_entry_id(request: Request, database: db.Session = Depends(db.get_db), key: APIKey = Depends(validate_api_key)):
     return JSONResponse(jsonable_encoder(await db.get_entries(database, request.path_params['table'], [["id", "==", request.path_params['id']]])))
 
-
-# @app.get("/get-session")
-# async def session_get(request: Request, database: Session = Depends(db.get_db)):
-#     response = JSONResponse(jsonable_encoder(session))
-#     return await response_wrapper(database, session, response)
 
 
 @app.get("/")
