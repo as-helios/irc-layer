@@ -9,6 +9,9 @@ function convert_urls_to_links(str) {
     }
     return str;
 }
+function convert_brackets_to_html_entities(str) {
+    return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 function strip_html_tags(str) {
   let regex_tags = /<\/?[a-z][\s\w]*[\/]?>/gi;
   let regex_attributes = /([A-Z])=[\"\'\s][^\s]+/g;
@@ -56,6 +59,7 @@ function spawn_modal_buttons(modal_type) {
     let buttons = [];
     switch (modal_type) {
         case 'confirm':
+            // TODO: dynamically include fields
             var ok_button = document.createElement('button');
             ok_button.classList.add('modal-button');
             ok_button.classList.add('ok');
@@ -66,6 +70,7 @@ function spawn_modal_buttons(modal_type) {
             cancel_button.classList.add('cancel');
             cancel_button.innerText = 'Cancel';
             buttons.push(cancel_button);
+            // TODO: retrieve result
             break;
         case 'info':
             var ok_button = document.createElement('button');

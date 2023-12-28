@@ -319,8 +319,8 @@ function generate_line(context) {
         line = `<div class="timestamp" title="${local_timestamp_iso}">${created_at}</div> <div class="sender" title="${context.nick}">***</div> <div class="content">${prefix}${context.nick} ${content}</div>`;
     } else if (line_type == "message") {
         let prefix = context.op ? '@' : context.voice ? '+' : '';
-        let content = convert_urls_to_links(context['content']);
-        content = content ? strip_html_tags(content) : '';
+        let content = convert_brackets_to_html_entities(context['content']);
+        content = convert_urls_to_links(content);
         line = `<div class="timestamp" title="${local_timestamp_iso}">${created_at}</div> <div class="sender" title="${context.nick}">${prefix}${context.nick}</div> <div class="content">${content}</div>`;
     } else if (line_type == "mode") {
         let modes = context['modes'].join('');
@@ -498,6 +498,12 @@ function spawn_context_menu(source_user, target_user) {
     document.body.appendChild(context_menu);
     let list = document.createElement('ol');
     context_menu.appendChild(list);
+
+    // TODO: count how many lines were multi selected and show (#) to indicate how many lines are pruned
+    // TODO: prune dispatches mark as red instead of hidden
+    // TODO: cycle_channels() should remember marked/pruned lines
+
+    // TODO: create endpoint to get pruned from /logs/ but mark red instead of hide
     let nick_box = document.getElementById("chat-nick");
     if (nick_box.value[0] == '@') {
         list.innerHTML += "<li class=\"item\">Prune Line</li>"; // confirm?
