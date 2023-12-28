@@ -315,12 +315,13 @@ function generate_line(context) {
         let prefix = context.op ? '@' : context.voice ? '+' : '';
         let content = context['content'].replace("\x01ACTION ", '');
         content = content.replace("\x01", '');
-        content = content ? strip_html_tags(content) : '';
+        content = convert_brackets_to_html_entities(content);
+        content = content ? convert_urls_to_links(content) : '';
         line = `<div class="timestamp" title="${local_timestamp_iso}">${created_at}</div> <div class="sender" title="${context.nick}">***</div> <div class="content">${prefix}${context.nick} ${content}</div>`;
     } else if (line_type == "message") {
         let prefix = context.op ? '@' : context.voice ? '+' : '';
         let content = convert_brackets_to_html_entities(context['content']);
-        content = convert_urls_to_links(content);
+        content = content ? convert_urls_to_links(content) : '';
         line = `<div class="timestamp" title="${local_timestamp_iso}">${created_at}</div> <div class="sender" title="${context.nick}">${prefix}${context.nick}</div> <div class="content">${content}</div>`;
     } else if (line_type == "mode") {
         let modes = context['modes'].join('');
