@@ -423,9 +423,10 @@ qwebirc.irc.BaseIRCClient = new Class({
 	},
 	irc_QUIT: function(prefix, params) {
 		let nick_box = document.getElementById("chat-nick");
-		if (nick_box.value == params[1]) {
-            if (['@', '+'].indexOf(nick_box.value[0]) > -1)
-                nick_box.value = nick_box.value.slice(1);
+		let nick = nick_box.value;
+        if (['@', '+'].indexOf(nick[0]) > -1)
+            nick = nick.slice(1);
+		if (nick == params[1]) {
 		    toggle_chat_input_ui(false);
 		    window['IRC_CHANNELS_JOINED'] = [];
 		}
