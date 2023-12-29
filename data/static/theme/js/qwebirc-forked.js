@@ -6,17 +6,17 @@ Forked for Atropa by alexander_as_helios
 
 */
 
-// custom logger
-let console_logger = console.log;
-const logger = (...args) => {
-	let output = sessionStorage.getItem('IRC_OUTPUT_CONSOLE');
-	let result = '';
-	if (output == '1') {
-		result = console_logger(...args);
-	}
-		return result;
-};
-console.log = logger;
+//// custom logger
+//let console_logger = console.log;
+//const logger = (...args) => {
+//	let output = sessionStorage.getItem('IRC_OUTPUT_CONSOLE');
+//	let result = '';
+//	if (output == '1') {
+//		result = console_logger(...args);
+//	}
+//		return result;
+//};
+//console.log = logger;
 
 // qwebirc stuff
 var QWEBIRC_BUILD="atropa";
@@ -418,17 +418,6 @@ qwebirc.irc.BaseIRCClient = new Class({
 		return true;
 	},
 	irc_NICK: function(prefix, params) {
-        sessionStorage.setItem("IRC_NICKNAME", params[0]);
-		let nick_box = document.getElementById("chat-nick");
-		let nick = nick_box.value;
-		let status = '';
-		if (['@', '+'].indexOf(nick_box.value[0]) > -1) {
-		    status = nick_box.value[0];
-		    nick = nick_box.value.slice(1);
-		}
-		if (nick == prefix.hostToNick()) {
-		    nick_box.value = `${status}${params[0]}`;
-		}
 		console.log("NICK: ", prefix, prefix.hostToNick(), params[0]);
 		return true;
 	},
@@ -613,7 +602,6 @@ qwebirc.irc.BaseIRCClient = new Class({
                     let nick_box = document.getElementById("chat-nick");
                     if (modes[o][operator][n] == 'b') {
                         if (match_mask(who[n], window['IRC_MASK'])) {
-                            console.log(params[0]);
                             if (window['IRC_BANNED'] == null) {
                                 window['IRC_BANNED'] = [];
                             }
@@ -630,13 +618,13 @@ qwebirc.irc.BaseIRCClient = new Class({
                             window['IRC_CHANNEL_OPS'] = [];
                         if (operator == '+' && nick_box.value[0] != '@') {
                             window['IRC_CHANNEL_OPS'].push(params[0])
-                            if (active_channel == params[0])
+                            if (active_channel == params[0] && nick_box.value == who[n])
                                 nick_box.value = `@${nick_box.value}`;
                         } else {
                             if (window['IRC_CHANNEL_OPS'].length == 0) continue
                             if (nick_box.value[0] == '@') {
                                 window['IRC_CHANNEL_OPS'] = window['IRC_CHANNEL_OPS'].filter(channel => channel !== params[0]);
-                                if (active_channel == params[0])
+                                if (active_channel == params[0] && nick_box.value.slice(1) == who[n])
                                     nick_box.value = `${nick_box.value.slice(1)}`;
                             }
                         }
@@ -645,14 +633,15 @@ qwebirc.irc.BaseIRCClient = new Class({
                             window['IRC_CHANNEL_VOICES'] = [];
                         if (operator == '+' && nick_box.value[0] != '+') {
                             window['IRC_CHANNEL_VOICES'].push(params[0])
-                            if (active_channel == params[0])
+                            if (active_channel == params[0] && nick_box.value == who[n])
                                 nick_box.value = `+${nick_box.value}`;
                         } else {
                             if (window['IRC_CHANNEL_VOICES'].length == 0) continue
                             if (nick_box.value[0] == '+') {
                                 window['IRC_CHANNEL_VOICES'] = window['IRC_CHANNEL_OPS'].filter(channel => channel !== params[0]);
-                                if (active_channel == params[0])
-                                    nick_box.value = `${nick_box.value.slice(1)}`;
+                                let nick_only = nick_box.value.slice(1);
+                                if (active_channel == params[0] && nick_only == who[n])
+                                    nick_box.value = `${nick_only}`;
                             }
                         }
                     }
@@ -893,10 +882,21 @@ qwebirc.irc.Commands = new Class({
 		this.send("KICK " + channel + " " + target + " :" + message);
 	}],
 	cmd_NICK: [true, 6, 1, function(args) {
-	    let mask = window['IRC_MASK'].split('!');
-	    window['IRC_MASK'] = `${args[0]}!${mask[1]}`;
-	    console.log(window['IRC_MASK']);
-		this.send("NICK " + args[0]);
+		if (this.send("NICK " + args[0])) {
+            let mask = window['IRC_MASK'].split('!');
+            window['IRC_MASK'] = `${args[0]}!${mask[1]}`;
+            sessionStorage.setItem("IRC_NICKNAME", params[0]);
+            let nick_box = document.getElementById("chat-nick");
+            let nick = nick_box.value;
+            let status = '';
+            if (['@', '+'].indexOf(nick_box.value[0]) > -1) {
+                status = nick_box.value[0];
+                nick = nick_box.value.slice(1);
+            }
+            if (nick == prefix.hostToNick()) {
+                nick_box.value = `${status}${params[0]}`;
+            }
+		}
 	}],
 	automode: function(direction, mode, args) {
 	    let chat_status = document.querySelector("div.chat-status span.chat-active-channel");
